@@ -7,87 +7,143 @@ Keep the backticks (\`) but remove the `${}`, so `${ITEM}` becomes `My Answer`.
 Unless otherwise specified, list the command and all arguments that you passed to it.
 
 ## Repository Configuration
-1. The `crazy_turtle` git repository consists of the ROS 2 packages `${pkg_name1}` and `${pkg_name2}`.
-2. The package `${pkg_name1}` has `<build_type>` of `${insert <build_type>}`.
-2. The package `${pkg_name2}` has a `<build_type>` of `${insert <build_type>}`.
+1. The `crazy_turtle` git repository consists of the ROS 2 packages `crazy_turtle` and `crazy_turtle_interfaces`.
+2. The package `crazy_turtle` has `<build_type>` of `ament_python`.
+2. The package `crazy_turtle_interfaces` has a `<build_type>` of `ament_cmake`.
 
 
 ## Setup Instructions
-1. Build the workspace using `${insert command here}`.
-2. Initialize the ROS environment (i.e., set the necessary ROS environment variables) by executing `${insert command here}`
-3. Make sure no other ROS nodes are running prior to starting by inspecting the results of the ROS command `${insert command here}`.
-3. Run the launchfile `go_crazy_turtle.launch.xml` by executing `${insert command here}`.
-4. When running you can see an interactive visual depiction of the ROS graph using the `${command}` command.
+1. Build the workspace using `colcon make`.
+2. Initialize the ROS environment (i.e., set the necessary ROS environment variables) by executing `source /opt/ros/kilted/setup.bash`
+3. Make sure no other ROS nodes are running prior to starting by inspecting the results of the ROS command `ros2 node list`.
+3. Run the launchfile `go_crazy_turtle.launch.xml` by executing `ros2 launch go_crazy_turtle.launch.xml`.
+4. When running you can see an interactive visual depiction of the ROS graph using the `ros2 run rqt_graph rqt_graph` command.
    The ROS graph, including all topics and node labels, looks like:
-   ![The ROS Graph](${export svg image from the viewer, add it to your homework repository, put path here so it displays in the README.md})
+   ![The ROS Graph](/HW1/ws/src/homework1/rosgraph.svg)
 
 ## Runtime Information
 The `launchfile` from above should be running at all times when executing the following commands.
 If the nodes launched from the `launchfile` are not running, you will get incorrect results.
 
-5. Use the ROS command `${command and args}` to list all the nodes that are running.
+5. Use the ROS command `ros2 node list` to list all the nodes that are running.
    The output of the command looks like
    ```
-   ${list each node, 1 per line.}
+   /mover
+   /roving_turtle
    ```
-6. Use the ROS command `${command and args}` to list the topics
+6. Use the ROS command `ros2 topic list` to list the topics
    The output of the command looks like
    ```
-   ${list each topic, 1 per line}
+   /parameter_events
+   /rosout
+   /turtle1/cmd_vel
+   /turtle1/color_sensor
+   /turtle1/pose
    ```
 
-7. Use the ROS command `${command and args}` to verify that the frequency of
-   the `/turtle1/cmd_vel` topic is `${frequency} Hz`
+7. Use the ROS command `ros2 topic hz /turtle1/cmd_vel` to verify that the frequency of
+   the `/turtle1/cmd_vel` topic is `12- Hz`
 
-8. Use the ROS command `${command and args}` to list the services.
+8. Use the ROS command `ros2 service list` to list the services.
    The output of the command looks like
    ```
-   ${list each service, 1 per line}
+   /clear
+   /kill
+   /mover/describe_parameters
+   /mover/get_parameter_types
+   /mover/get_parameters
+   /mover/get_type_description
+   /mover/list_parameters
+   /mover/set_parameters
+   /mover/set_parameters_atomically
+   /reset
+   /roving_turtle/describe_parameters
+   /roving_turtle/get_parameter_types
+   /roving_turtle/get_parameters
+   /roving_turtle/get_type_description
+   /roving_turtle/list_parameters
+   /roving_turtle/set_parameters
+   /roving_turtle/set_parameters_atomically
+   /spawn
+   /switch
+   /turtle1/set_pen
+   /turtle1/teleport_absolute
+   /turtle1/teleport_relative
    ```
 
-9. Use the ROS command `${command and args}` to determine the type of the `/switch` service, which is `${service type}`.
+9. Use the ROS command `ros2 service type /switch` to determine the type of the `/switch` service, which is `crazy_turtle_interfaces/serv/Switch`.
 
-10. Use the ROS command `${command and args}` to list the parameters of all running nodes
+10. Use the ROS command `ros2 param list` to list the parameters of all running nodes
     ```
-    ${list each parameter here, 1 per line}
+    /mover:
+      start_type_description_service
+      use_sim_time
+      velocity
+   /roving_turtle:
+      background_b
+      background_g
+      background_r
+      holonomic
+      qos_overrides./parameter_events.publisher.depth
+      qos_overrides./parameter_events.publisher.durability
+      qos_overrides./parameter_events.publisher.history
+      qos_overrides./parameter_events.publisher.reliability
+      start_type_description_service
+      use_sim_time
     ```
 
-11. Use the ROS command `${command and args}` to get information about the `/mover` `velocity` parameter, including its type, description, and constraints
+11. Use the ROS command `ros2 param describe mover velocity` to get information about the `/mover` `velocity` parameter, including its type, description, and constraints
     ```
-    ${full output of the command here}
+   Parameter name: velocity
+      Type: double
+      Description: The velocity of the turtle
+      Constraints:
     ```
 
-12. Use the ROS command `${command and args}` to retrieve a template/prototype for entering parameters for the `/switch` service on the command line.
+12. Use the ROS command `ros2 interface show crazy_turtle_interfaces/srv/Switch` to retrieve a template/prototype for entering parameters for the `/switch` service on the command line.
     ```
-    ${full output of the command here}
+    # use a strange formula to set the new location of the turtle
+   turtlesim_msgs/Pose mixer
+      float32 x
+      float32 y
+      float32 theta
+      float32 linear_velocity
+      float32 angular_velocity
+   ---
+   float64 x # the new x position of the new turtle
+   float64 y # the new y position of the new
     ```
 
 ## Package Exploration
-1. Use the ROS command `${command and args}` to list the interface types defined by `crazy_turtle_interfaces`
+1. Use the ROS command `ros2 interface package crazy_turtle_interfaces` to list the interface types defined by `crazy_turtle_interfaces`
    The output of the command looks like
    ```
-   ${list service types here, 1 per line}
+   crazy_turtle_interfaces/srv/Switch
    ```
-2. Use the ROS command `${command and args}` to list the executables included with the `crazy_turtle` package
+2. Use the ROS command `ros2 pkg executables crazy_turtle` to list the executables included with the `crazy_turtle` package
    The output of the command looks like
    ```
-   ${list executables here, 1 per line}
+   crazy_turtle mover
    ```
 
 ## Live Interaction
-1. Use the command `${command and args here}` to retrieve the value of the `/mover velocity` parameter, which is `${value here}`.
+1. Use the command `ros2 param get /mover velocity` to retrieve the value of the `/mover velocity` parameter, which is `Double value is: 4.5`.
 2. The ROS command to call the `/switch` service is
     ```
-    ${enter the command to clal the service with with x=1.3, y=2.1, theta=0.1, angular_velocity=3.1, linear_velocity=4.0}
+    ros2 service call /switch crazy_turtle_interfaces/srv/Switch "{ mixer: {x: 1.3, y: 2.1, theta: 0.1, angular_velocity: 3.1, linear_velocity: 4.0}}"
     ```
-3. The return value of the service is (to two decimal places): `x = ${x value} y = ${y value}`.
+3. The return value of the service is (to two decimal places): `x=3.6499998569488525, y=2.5999999046325684`.
 
 4. The mover node logged the following information in response to the service call:
    ```
-   ${enter each logged message, 1 per line}
+   Killing turtle1
+   turtle1 is dead :(
+   long live turtle1!
+   turtle1 lives!
+   
    ```
-5. What happens to the turtle's motion if you use `${command and args here}` to change `/mover velocity` to 12 while the launchfile is running? `${faster | slower | same}`
-6. Use the Linux command `${command and args}` to kill the `/mover` node.
-7. Use the ROS command `${command and args}` to start the `/mover` node with a velocity of 12.
+5. What happens to the turtle's motion if you use `ros2 param set /mover velocity 12.0` to change `/mover velocity` to 12 while the launchfile is running? `faster`
+6. Use the Linux command `pkill mover` to kill the `/mover` node.
+7. Use the ROS command `ros2 run crazy_turtle mover --ros-args --remap cmd_vel:=/turtle1/cmd_vel -p velocity:=12.0` to start the `/mover` node with a velocity of 12.
     - HINT: Be sure to remap `cmd_vel` to `/turtle1/cmd_vel`.
-8. What happened to the turtle's velocity after relaunching `mover`? `${Answer faster OR slower OR same}`
+8. What happened to the turtle's velocity after relaunching `mover`? `same`
