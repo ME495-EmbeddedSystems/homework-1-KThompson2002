@@ -1,0 +1,4 @@
+# Send arbitrary number of waypoints to a node and responds with the total straight-line distance that the turtle will travel to complete one cycle of the waypoints 
+turtlesim_msgs/msg/Point[] waypoints
+---
+float64 distance
