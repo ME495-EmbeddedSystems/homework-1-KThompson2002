@@ -1,9 +1,12 @@
 from enum import Enum, auto
 import rclpy
 import math
+
 from rclpy.node import Node
 from std_srvs.srv import Empty
 from turtle_interfaces.srv import Waypoint
+from turtle_interfaces.msg import ErrorMetric
+
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from turtlesim_msgs.srv import SetPen, TeleportAbsolute
 from turtlesim_msgs.msg import Pose
@@ -21,12 +24,19 @@ class State(Enum):
 class WaypointNode(Node):
     def __init__(self):
         super().__init__("waypoint")
-        self.freq = 90 # hz
+        # declare parameters
+        self.declare_parameter("tolerance", 1.0)
+        self.declare_parameter("frequency", 90.0)
+
+        # Create Parameter
+        self.tolerance = self.get_parameter("tolerance").get_parameter_value().double_value
+        self.freq = self.get_parameter("frequency").get_parameter_value().double_value
+
+        # Establish constant variables
         self._velocity = 2.0
         self._vel_ang = 4.0
         self.timer = self.create_timer(1/self.freq, self.timer_callback)
         self.my_callback_group = MutuallyExclusiveCallbackGroup()
-        
         # Create services
         self.toggle = self.create_service(Empty, "toggle",  self.toggle_callback)
         self.load = self.create_service(Waypoint, "load", self.load_callback)
@@ -35,12 +45,13 @@ class WaypointNode(Node):
         self.curr_waypoint = None
         self.curr_waypoint_idx = 0
         self.waypoints = None
-
-        #
-        self.declare_parameter("tolerance", 1.0)
-        # Create Parameter
-        self.tolerance = self.get_parameter("tolerance").get_parameter_value().double_value
-
+        self.distance_actual = 0
+        self.distance = 0
+        self.complete_loops = 0
+        self.curr_waypoint_loop = 0
+        self.curr_loop_distance = 0
+        
+        
         # Creating clients
         self.reset = self.create_client(Empty, "/reset", callback_group=self.my_callback_group)
         self.set_pen = self.create_client(SetPen, "turtle1/set_pen", callback_group=self.my_callback_group)
@@ -56,6 +67,7 @@ class WaypointNode(Node):
 
         # Create Publishers
         self._pub = self.create_publisher(Twist, "cmd_vel", 10)
+        self.metric = self.create_publisher(ErrorMetric, "loop_metrics", 10)
 
         if not self.reset.wait_for_service(timeout_sec=1.0):
             raise RuntimeError('Timeout waiting for "reset" service to become available')
@@ -82,9 +94,19 @@ class WaypointNode(Node):
                         else:
                             self.curr_waypoint = self.waypoints[self.curr_waypoint_idx]
                     else:
+                        self.complete_loops += 1
+                        self.curr_waypoint_loop += 1
                         self.state = State.STOPPED
                         self.curr_waypoint = self.waypoints[1]
                         self.curr_waypoint_idx = 1
+                        if self.curr_waypoint_loop > 1:
+                            self.distance += self.curr_loop_distance
+                        msg = ErrorMetric()
+                        msg.complete_loops = self.complete_loops
+                        msg.actual_distance = self.distance_actual
+                        msg.error = self.distance_actual - self.distance
+                        self.metric.publish(msg)
+                        self.get_logger().info(f"Publishing: {msg.complete_loops}, {msg.actual_distance}, and {msg.error}")
                 twist = self.turtle_twist()
                 self._pub.publish(twist)
             else:
@@ -157,18 +179,26 @@ class WaypointNode(Node):
 
             if i < len(request.waypoints):
                 x = i - 1
-                response.distance += self.get_distance(request.waypoints[0], request.waypoints[1])
+                response.distance += self.get_distance(request.waypoints[x], request.waypoints[i])
+                i += 1
 
 
 
+        response.distance += self.get_distance(request.waypoints[0], request.waypoints[i-1])
+        self.curr_waypoint_loop = 0
         self.teleport_msg.x, self.teleport_msg.y = request.waypoints[0].x, request.waypoints[0].y
         await self.teleport.call_async(self.teleport_msg)
+        self.get_logger().info(f"Straight line distance: {response.distance}")
         if len(request.waypoints) > 1:
             self.curr_waypoint = request.waypoints[1]
             self.curr_waypoint_idx = 1
+        self.curr_loop_distance = response.distance
+        self.distance += response.distance
         return response
     
     def feedback_callback(self, pose):
+        if self.state == State.MOVING or self.state == State.LAST:
+            self.distance_actual += self.get_distance(self.pose, pose)
         self.pose = pose
 
 
@@ -176,15 +206,7 @@ class WaypointNode(Node):
         return math.sqrt((point1.x - point2.x)**2 + (point1.y - point2.y)**2)
     
     def turtle_twist(self):
-        """ Create a twist suitable for a turtle
-
-            Args:
-            xdot (float) : the forward velocity
-            omega (float) : the angular velocity
-
-            Returns:
-            Twist - a 2D twist object corresponding to linear/angular velocity
-        """
+        """ Create a twist which moves the turtle proportionally towards the next waypoint """
         if self.state == State.MOVING or self.state == State.LAST:
             #Establish initial important variables
             vel_msg = Twist()
@@ -196,7 +218,7 @@ class WaypointNode(Node):
             dy = self.curr_waypoint.y - self.pose.y
             theta_dir = math.atan2(dy, dx)
             omega = theta_dir - self.pose.theta
-            self.get_logger().info(f"Angle is: {omega}")
+            # self.get_logger().info(f"Angle is: {omega}")
             # if (omega > math.pi):
 
             angle = omega * self._vel_ang
