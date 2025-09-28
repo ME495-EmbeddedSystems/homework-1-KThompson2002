@@ -66,7 +66,7 @@ class WaypointNode(Node):
         self._feedback = self.create_subscription(Pose, "turtle1/pose", self.feedback_callback, 10)
 
         # Create Publishers
-        self._pub = self.create_publisher(Twist, "cmd_vel", 10)
+        self._pub = self.create_publisher(Twist, "turtle1/cmd_vel", 10)
         self.metric = self.create_publisher(ErrorMetric, "loop_metrics", 10)
 
         if not self.reset.wait_for_service(timeout_sec=1.0):
