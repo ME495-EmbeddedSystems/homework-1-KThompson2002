@@ -1,0 +1,3 @@
+[1] Worked With: Longzhang Zhu, Theodore Coulson, Nolan Knight, Greg Aiosa, Jyothi Swaroop Kasina, 
+[2] Gemini Pro 2.5. Google. Used on: Sep 28th 2025. Transcript Available: https://g.co/gemini/share/4ab0ef3f498a
+[3] Anis Koubaa, "[Udemy ROS] Go to Goal in ROS (Python)," Youtube, Oct. 4, 2018. [Online video, 0:17-4:18]. Available: https://youtu.be/D7ISrmszozk?si=AU71Y_3B6b9R0K4a [Accessed: Sep. 27, 2025]

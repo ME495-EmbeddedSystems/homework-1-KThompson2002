@@ -8,6 +8,7 @@ setup(
     name=package_name,
     version='0.0.0',
     packages=find_packages(exclude=['test']),
+############################ Begin_Citation [2] ############################
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -15,6 +16,7 @@ setup(
         (os.path.join('share', package_name, 'launch'), glob('launch/*')),
         (os.path.join('share', package_name, 'config'), glob('config/*'))
     ],
+############################ End_Citation [2]  #############################
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='KThompson2002',
