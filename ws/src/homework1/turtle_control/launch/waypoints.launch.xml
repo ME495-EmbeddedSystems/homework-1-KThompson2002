@@ -4,6 +4,10 @@
     </node>
     <node pkg="turtle_control" exec="waypoint" name="waypoint">
         <param name="tolerance" value="0.05" />
-        <param name="frequency" value="120.0" />
+        <param name="frequency" value="100.0" />
+        <remap from="cmd_vel" to="turtle1/cmd_vel" />
+        <remap from="pose" to="turtle1/pose" />
+        <remap from="set_pen" to="turtle1/set_pen" />
+        <remap from="teleport_pen" to="turtle1/teleport_pen" />
     </node>
 </launch>

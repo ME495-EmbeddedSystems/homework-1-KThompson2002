@@ -33,8 +33,8 @@ class WaypointNode(Node):
         self.freq = self.get_parameter("frequency").get_parameter_value().double_value
 
         # Establish constant variables
-        self._velocity = 2.0
-        self._vel_ang = 4.0
+        self._velocity = 1.0
+        self._vel_ang = 1.0
         self.timer = self.create_timer(1/self.freq, self.timer_callback)
         self.my_callback_group = MutuallyExclusiveCallbackGroup()
         # Create services
@@ -53,7 +53,7 @@ class WaypointNode(Node):
         
         
         # Creating clients
-        self.reset = self.create_client(Empty, "/reset", callback_group=self.my_callback_group)
+        self.reset = self.create_client(Empty, "reset", callback_group=self.my_callback_group)
         self.set_pen = self.create_client(SetPen, "turtle1/set_pen", callback_group=self.my_callback_group)
         self.teleport = self.create_client(TeleportAbsolute, "turtle1/teleport_absolute", callback_group=self.my_callback_group)
 
@@ -96,7 +96,7 @@ class WaypointNode(Node):
                     else:
                         self.complete_loops += 1
                         self.curr_waypoint_loop += 1
-                        self.state = State.STOPPED
+                        self.state = State.MOVING
                         self.curr_waypoint = self.waypoints[1]
                         self.curr_waypoint_idx = 1
                         if self.curr_waypoint_loop > 1:
@@ -109,8 +109,6 @@ class WaypointNode(Node):
                         self.get_logger().info(f"Publishing: {msg.complete_loops}, {msg.actual_distance}, and {msg.error}")
                 twist = self.turtle_twist()
                 self._pub.publish(twist)
-            else:
-                self.state = State.STOPPED
                     
             
 
@@ -194,6 +192,7 @@ class WaypointNode(Node):
             self.curr_waypoint_idx = 1
         self.curr_loop_distance = response.distance
         self.distance += response.distance
+        self.set_pen_msg.off = 0
         return response
     
     def feedback_callback(self, pose):
@@ -236,9 +235,6 @@ class WaypointNode(Node):
             return Twist()
 
             
-
-
-
 
 def main(args=None):
     rclpy.init(args=args)
