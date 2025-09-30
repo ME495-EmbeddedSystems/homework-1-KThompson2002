@@ -1,3 +1,26 @@
+"""
+Places waypoints around the turtle, and then publishes a twist
+that will move the robot towards the waypoints with either a 
+velocity in the x direction or a rotation in the z-axis. 
+
+PUBLISHERS:
+  + Twist (geometry_msgs/msg/Twist) - The velocity of an erratic turtle path
+  + ErrorMetric (turtle_interfaces/msg/ErrorMetric) - Lists out the error each loop
+
+SERVICES:
+  + Switch (turtle_interfaces/srv/Waypoint) - Position of the waypoints
+  
+CLIENTS:
+  + Reset (std_srvs/srv/Empty) - Resets turtlesim
+  + SetPen (turtlesim_msgs/srv/SetPen) - Turns the pen on and off, chooses width and color
+  + TeleportAbsolute (turtlesim_msgs/srv/TeleportAbsolute) - Teleports the turtle to an absolute pose
+
+PARAMETERS:
+  + tolerance (double) - tolerance for distance to waypoint
+  + frequency (double) - Frequency in HZ the timer calls
+  
+
+"""
 from enum import Enum, auto
 import rclpy
 import math
@@ -10,8 +33,7 @@ from turtle_interfaces.msg import ErrorMetric
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from turtlesim_msgs.srv import SetPen, TeleportAbsolute
 from turtlesim_msgs.msg import Pose
-from geometry_msgs.msg import Twist, Vector3, Point
-
+from geometry_msgs.msg import Twist
 
 class State(Enum):
     """ Current state of the system.
@@ -22,6 +44,8 @@ class State(Enum):
     STOPPED = auto(),
 
 class WaypointNode(Node):
+    """ The WaypointNode loads a series of waypoints and publishes movement commands at a fixed interval
+    """
     def __init__(self):
         super().__init__("waypoint")
         # declare parameters
@@ -63,12 +87,13 @@ class WaypointNode(Node):
 
         # Create Subscribers
         self.pose = Pose()
-        self._feedback = self.create_subscription(Pose, "turtle1/pose", self.feedback_callback, 10)
+        self._feedback = self.create_subscription(Pose, "pose", self.feedback_callback, 10)
 
         # Create Publishers
-        self._pub = self.create_publisher(Twist, "turtle1/cmd_vel", 10)
+        self._pub = self.create_publisher(Twist, "cmd_vel", 10)
         self.metric = self.create_publisher(ErrorMetric, "loop_metrics", 10)
-
+        
+        #Timer for services to respond
         if not self.reset.wait_for_service(timeout_sec=1.0):
             raise RuntimeError('Timeout waiting for "reset" service to become available')
 
@@ -80,6 +105,10 @@ class WaypointNode(Node):
 
 
     def timer_callback(self):
+        """ Calls on turtle_twist to publish movement commands at fixed intervals
+        Detects if turtle is within tolerance of the next waypoint
+        Publishes Errormetric info if at end of current loop
+        """
         if self.state == State.MOVING or self.state == State.LAST:
             msg = f"moving"
             self.get_logger().debug(msg)
@@ -113,6 +142,16 @@ class WaypointNode(Node):
             
 
     async def toggle_callback(self, request, response):
+        """ Callback function for the toggle service
+
+        Toggles state between Stopped and Moving
+
+        Args:
+          request: Empty
+          response: Empty
+          
+        Empty Return
+        """
         if self.state == State.MOVING or self.state == State.LAST:
             self.get_logger().info("Stopping")
             self.state = State.STOPPED
@@ -126,6 +165,21 @@ class WaypointNode(Node):
         return response
 
     async def load_callback(self, request, response):
+        """ Callback function for the load service
+
+        Resets the turtle, loads up a series of waypoints, draws the X at 
+        each point, and places the turtle at the first waypoint
+
+         Args:
+          request (WaypointRequest): The request object, containing a
+          list of poses [x and y int64s]
+
+          response (WaypointResponse): the response object, containing the
+          total straightline distance between consecutive waypoints
+
+        Returns:
+           A WaypointResponse, containing the straight-line distance between waypoints
+        """
         self.get_logger().info("Resetting and adding waypoints")
         self.state = State.STOPPED
         response.distance = 0
@@ -196,12 +250,21 @@ class WaypointNode(Node):
         return response
     
     def feedback_callback(self, pose):
+        """ Callback function for the feedback subscriber
+        Retrieves the pose of the turtle and updates the local variable
+        If the turtle is moving, update the actual travelled distance of the turtle
+        """
         if self.state == State.MOVING or self.state == State.LAST:
             self.distance_actual += self.get_distance(self.pose, pose)
         self.pose = pose
 
 
     def get_distance(self, point1, point2):
+        """ Calculates straight line distance between two poses
+        
+        point1 - initial point
+        point2 - end point
+        """
         return math.sqrt((point1.x - point2.x)**2 + (point1.y - point2.y)**2)
     
     def turtle_twist(self):
@@ -210,8 +273,9 @@ class WaypointNode(Node):
             #Establish initial important variables
             vel_msg = Twist()
             dist = self.get_distance(self.pose, self.curr_waypoint)
+            ############################ Start_Citation [3]  #############################
             linear = dist * self._velocity
-
+            ############################ End_Citation [3]  #############################
             #Calculate relative angle
             dx = self.curr_waypoint.x - self.pose.x
             dy = self.curr_waypoint.y - self.pose.y
@@ -219,9 +283,9 @@ class WaypointNode(Node):
             omega = theta_dir - self.pose.theta
             # self.get_logger().info(f"Angle is: {omega}")
             # if (omega > math.pi):
-
+            ############################ Start_Citation [3]  #############################
             angle = omega * self._vel_ang
-
+            ############################ End_Citation [3]  #############################
             if omega > 0.01 or omega < -0.01:
                 vel_msg.linear.x = 0.0
                 vel_msg.angular.z = angle
@@ -237,6 +301,7 @@ class WaypointNode(Node):
             
 
 def main(args=None):
+    """ The main() function. """
     rclpy.init(args=args)
     node = WaypointNode()
     rclpy.spin(node) 

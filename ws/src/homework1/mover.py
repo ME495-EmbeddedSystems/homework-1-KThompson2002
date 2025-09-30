@@ -1,11 +1,11 @@
 # Copy this file into your homework repository and fill in the ${?} blanks in the document strings
 """
-Publishes twist that will move a robot back and forth in the ${?} direction
-while randomly providing an angular velocity about the ${?}-axis.
+Publishes twist that will move a robot back and forth in the x direction
+while randomly providing an angular velocity about the z-axis.
 
 PUBLISHERS:
   + Twist (geometry_msgs/msg/Twist) - The velocity of an erratic turtle path
-
+  
 SERVICES:
   + Switch (crazy_turtle_interfaces/srv/Switch) - Position of the new turtle
 
@@ -75,7 +75,7 @@ class Mover(Node):
             raise RuntimeError('Timeout waiting for "spawn" service to become available')
 
     def switch_callback(self, request, response):
-        """ Callback function for the ${?} service
+        """ Callback function for the switch service
 
         Kills turtle1 and respawns it an a new location
 
