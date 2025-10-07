@@ -5,8 +5,8 @@ Author: Kyle Thompson
 3. The `ros2 serviccall /toggle std_srvs/srv/Empty` starts and stops the turtle.
 4. Here is a video of the turtle in action.
 
-   ${embed video here, must show up inline in the README.md when rendered on github. Video file itself should be uploaded as a github issue and linked here, not in the repository}`
+   [turtle_sim_record.webm](https://github.com/user-attachments/assets/0a196827-a503-4fdf-862b-a900169b6f76)
 
 5. Here is a video when the bag is played.
 
-   ${embed video here, must show up inline in the README.md when rendered on github. Video file itself should be uploaded as a github issue and linked here, not in the repository}`
+   [turtle_bag_video.webm](https://github.com/user-attachments/assets/1d5497d5-cd20-43ad-8355-a3135d26f143)
