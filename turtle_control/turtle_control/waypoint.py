@@ -110,7 +110,7 @@ class WaypointNode(Node):
         Publishes Errormetric info if at end of current loop
         """
         if self.state == State.MOVING or self.state == State.LAST:
-            msg = f"moving"
+            msg = f"moving" # why do you have a separte msg variable here?
             self.get_logger().debug(msg)
             if self.curr_waypoint is not None and self.waypoints is not None:
                 if self.get_distance(self.pose, self.curr_waypoint) < self.tolerance:
@@ -138,8 +138,7 @@ class WaypointNode(Node):
                         self.get_logger().info(f"Publishing: {msg.complete_loops}, {msg.actual_distance}, and {msg.error}")
                 twist = self.turtle_twist()
                 self._pub.publish(twist)
-                    
-            
+        # Should be publishing 0 twists when stopped. It is good practice to explicitly send 0 commands versus not sending any commands, which could be viewed as an error
 
     async def toggle_callback(self, request, response):
         """ Callback function for the toggle service
@@ -147,7 +146,7 @@ class WaypointNode(Node):
         Toggles state between Stopped and Moving
 
         Args:
-          request: Empty
+          request: Empty # use full type std_srvs/srv/Empty
           response: Empty
           
         Empty Return
@@ -281,6 +280,7 @@ class WaypointNode(Node):
             dy = self.curr_waypoint.y - self.pose.y
             theta_dir = math.atan2(dy, dx)
             omega = theta_dir - self.pose.theta
+            # don't leave commented out code in the file
             # self.get_logger().info(f"Angle is: {omega}")
             # if (omega > math.pi):
             ############################ Start_Citation [3]  #############################

@@ -13,13 +13,13 @@ Unless otherwise specified, list the command and all arguments that you passed t
 
 
 ## Setup Instructions
-1. Build the workspace using `colcon make`.
-2. Initialize the ROS environment (i.e., set the necessary ROS environment variables) by executing `source /opt/ros/kilted/setup.bash`
+1. Build the workspace using `colcon build`.
+2. Initialize the ROS environment (i.e., set the necessary ROS environment variables) by executing `source install/setup.bash`
 3. Make sure no other ROS nodes are running prior to starting by inspecting the results of the ROS command `ros2 node list`.
-3. Run the launchfile `go_crazy_turtle.launch.xml` by executing `ros2 launch go_crazy_turtle.launch.xml`.
+3. Run the launchfile `go_crazy_turtle.launch.xml` by executing `ros2 launch crazy_turtle go_crazy_turtle.launch.xml`.
 4. When running you can see an interactive visual depiction of the ROS graph using the `ros2 run rqt_graph rqt_graph` command.
    The ROS graph, including all topics and node labels, looks like:
-   ![The ROS Graph](/HW1/ws/src/homework1/rosgraph.svg)
+   ![The ROS Graph](rosgraph.svg)
 
 ## Runtime Information
 The `launchfile` from above should be running at all times when executing the following commands.
@@ -42,7 +42,7 @@ If the nodes launched from the `launchfile` are not running, you will get incorr
    ```
 
 7. Use the ROS command `ros2 topic hz /turtle1/cmd_vel` to verify that the frequency of
-   the `/turtle1/cmd_vel` topic is `12- Hz`
+   the `/turtle1/cmd_vel` topic is `120 Hz`
 
 8. Use the ROS command `ros2 service list` to list the services.
    The output of the command looks like
@@ -71,7 +71,7 @@ If the nodes launched from the `launchfile` are not running, you will get incorr
    /turtle1/teleport_relative
    ```
 
-9. Use the ROS command `ros2 service type /switch` to determine the type of the `/switch` service, which is `crazy_turtle_interfaces/serv/Switch`.
+9. Use the ROS command `ros2 service type /switch` to determine the type of the `/switch` service, which is `crazy_turtle_interfaces/srv/Switch`.
 
 10. Use the ROS command `ros2 param list` to list the parameters of all running nodes
     ```
@@ -100,7 +100,7 @@ If the nodes launched from the `launchfile` are not running, you will get incorr
       Constraints:
     ```
 
-12. Use the ROS command `ros2 interface show crazy_turtle_interfaces/srv/Switch` to retrieve a template/prototype for entering parameters for the `/switch` service on the command line.
+12. Use the ROS command `ros2 interface proto crazy_turtle_interfaces/srv/Switch` to retrieve a template/prototype for entering parameters for the `/switch` service on the command line.
     ```
     # use a strange formula to set the new location of the turtle
    turtlesim_msgs/Pose mixer
